@@ -80,6 +80,79 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 	}
 });
 
+// Route for serving live video stream
+app.get("/stream/:assetId", async (req, res) => {
+	try {
+		const asset = await Asset.findById(req.params.assetId);
+
+		if (!asset) {
+			return res.status(404).json({ error: "Asset not found" });
+		}
+
+		const videoPath = path.join(__dirname, asset.path);
+
+		const stat = fs.statSync(videoPath);
+		const fileSize = stat.size;
+		const range = req.headers.range;
+
+		if (range) {
+			const parts = range.replace(/bytes=/, "").split("-");
+			const start = parseInt(parts[0], 10);
+			const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+			const chunksize = end - start + 1;
+			const file = fs.createReadStream(videoPath, { start, end });
+			const head = {
+				"Content-Range": `bytes ${start}-${end}/${fileSize}`,
+				"Accept-Ranges": "bytes",
+				"Content-Length": chunksize,
+				"Content-Type": "video/mp4",
+			};
+
+			res.writeHead(206, head);
+			file.pipe(res);
+		} else {
+			const head = {
+				"Content-Length": fileSize,
+				"Content-Type": "video/mp4",
+			};
+
+			res.writeHead(200, head);
+			fs.createReadStream(videoPath).pipe(res);
+		}
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+});
+
+//delete the assest
+app.delete("/delete/:assetId", async (req, res) => {
+	try {
+		const asset = await Asset.findById(req.params.assetId);
+
+		if (!asset) {
+			return res.status(404).json({ error: "Asset not found" });
+		}
+
+		// Delete the asset file
+		const videoPath = path.join(
+			__dirname,
+			"uploads",
+			asset.type,
+			asset.filename
+		);
+		fs.unlinkSync(videoPath);
+
+		// Delete the asset record from MongoDB
+		await asset.remove();
+
+		res.json({ message: "Asset deleted successfully" });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+});
+
 function getFileType(mimeType) {
 	if (mimeType.startsWith("image/")) {
 		return "images";
