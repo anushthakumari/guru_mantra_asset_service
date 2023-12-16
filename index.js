@@ -153,7 +153,7 @@ app.delete("/delete/:assetId", async (req, res) => {
 		fs.unlinkSync(videoPath);
 
 		// Delete the asset record from MongoDB
-		await asset.remove();
+		await asset.deleteOne();
 
 		res.json({ message: "Asset deleted successfully" });
 	} catch (error) {
