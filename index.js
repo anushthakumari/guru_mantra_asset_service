@@ -8,7 +8,7 @@ const fs = require("fs");
 dotenv.config();
 
 const app = express();
-const port = process.env.RESOURCES_PORT || 5000;
+const port = process.env.PORT || 5000;
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
