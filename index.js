@@ -21,8 +21,10 @@ mongoose.connect(process.env.MONGODB_URI, {
 const assetSchema = new mongoose.Schema({
 	type: String,
 	filename: String,
-	file_url: String,
+	file_url: { type: String, required: true },
 	user_name: String,
+	element_type: { type: String, required: true },
+	title: String,
 	user_id: String,
 	is_private: Boolean,
 	createdAt: { type: Date, default: Date.now },
@@ -61,7 +63,7 @@ app.use("/uploads", express.static("uploads"));
 // API endpoint for uploading assets
 app.post("/upload", upload.single("file"), async (req, res) => {
 	try {
-		const { user_id, user_name, is_private } = req.body;
+		const { user_id, user_name, is_private, title, element_type } = req.body;
 		const { filename } = req.file;
 		const fileType = getFileType(req.file.mimetype);
 
@@ -74,6 +76,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 			file_url,
 			user_id,
 			user_name,
+			title,
+			element_type,
 			is_private: is_private === "true",
 		});
 		await newAsset.save();
