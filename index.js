@@ -60,6 +60,20 @@ const upload = multer({ storage: storage });
 // Serve uploaded assets
 app.use("/uploads", express.static("uploads"));
 
+// get assets
+app.use("/assets", async (req, res, next) => {
+	const { element_type } = req.query;
+
+	const filter = {
+		is_private: false,
+		...(element_type ? { element_type } : {}),
+	};
+
+	const data = await Asset.find(filter);
+
+	res.send(data);
+});
+
 // API endpoint for uploading assets
 app.post("/upload", upload.single("file"), async (req, res) => {
 	try {
