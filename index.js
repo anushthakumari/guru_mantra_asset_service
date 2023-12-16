@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const path = require("path");
 const fs = require("fs");
+const cors = require("cors");
 
 dotenv.config();
 
@@ -27,6 +28,8 @@ const assetSchema = new mongoose.Schema({
 });
 
 const Asset = mongoose.model("asset", assetSchema);
+
+app.use(cors());
 
 // Set up Multer for file uploads
 const storage = multer.diskStorage({
