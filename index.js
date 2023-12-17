@@ -23,6 +23,7 @@ const assetSchema = new mongoose.Schema({
 	filename: String,
 	file_url: { type: String, required: true },
 	user_name: String,
+	desc: String,
 	element_type: { type: String, required: true },
 	title: String,
 	user_id: String,
@@ -60,10 +61,25 @@ const upload = multer({ storage: storage });
 // Serve uploaded assets
 app.use("/uploads", express.static("uploads"));
 
+// get assets
+app.use("/assets", async (req, res, next) => {
+	const { element_type } = req.query;
+
+	const filter = {
+		is_private: false,
+		...(element_type ? { element_type } : {}),
+	};
+
+	const data = await Asset.find(filter);
+
+	res.send(data);
+});
+
 // API endpoint for uploading assets
 app.post("/upload", upload.single("file"), async (req, res) => {
 	try {
-		const { user_id, user_name, is_private, title, element_type } = req.body;
+		const { user_id, user_name, is_private, title, element_type, desc } =
+			req.body;
 		const { filename } = req.file;
 		const fileType = getFileType(req.file.mimetype);
 
@@ -78,6 +94,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 			user_name,
 			title,
 			element_type,
+			desc,
 			is_private: is_private === "true",
 		});
 		await newAsset.save();
