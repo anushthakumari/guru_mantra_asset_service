@@ -13,6 +13,6 @@ const assetSchema = new mongoose.Schema({
 	createdAt: { type: Date, default: Date.now },
 });
 
-const Asset = mongoose.model("assets", assetSchema);
+const Asset = mongoose.model("asset", assetSchema);
 
 module.exports = Asset;
