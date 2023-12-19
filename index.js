@@ -6,32 +6,14 @@ const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
 
+const Asset = require("./models/Asset.model");
+
 dotenv.config();
+
+connectDB();
 
 const app = express();
 const port = process.env.PORT || 5000;
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-	useNewUrlParser: true,
-	useUnifiedTopology: true,
-});
-
-// Define Asset schema
-const assetSchema = new mongoose.Schema({
-	type: String,
-	filename: String,
-	file_url: { type: String, required: true },
-	user_name: String,
-	desc: String,
-	element_type: { type: String, required: true },
-	title: String,
-	user_id: String,
-	is_private: Boolean,
-	createdAt: { type: Date, default: Date.now },
-});
-
-const Asset = mongoose.model("asset", assetSchema);
 
 app.use(cors());
 
@@ -196,3 +178,20 @@ function getFileType(mimeType) {
 app.listen(port, () => {
 	console.log(`Server is running at http://localhost:${port}`);
 });
+
+async function connectDB() {
+	const mg = await mongoose.connect(process.env.MONGODB_URI, {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+	});
+
+	const dbConnection = mg.connection;
+
+	dbConnection.once("open", (_) => {
+		console.log(`Database connected: ${url}`);
+	});
+
+	dbConnection.on("error", (err) => {
+		console.error(`connection error: ${err}`);
+	});
+}
